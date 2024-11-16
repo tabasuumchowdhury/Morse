@@ -1,4 +1,4 @@
-package edu.vanier.template;
+package edu.vanier.morse;
 
 /**
  * This is a JavaFX project template to be used for creating GUI applications.
