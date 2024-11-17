@@ -1,13 +1,14 @@
 package edu.vanier.morse.controller;
 
 import edu.vanier.morse.MainApp;
-import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
+import javafx.animation.*;
 import javafx.fxml.FXML;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
@@ -41,8 +42,10 @@ public class TransmitController {
 
     @FXML
     private TextField msgField;
-
+    @FXML
+    BorderPane borderPane;
     private Timeline timeline;
+    private double timeElapsed = 0.0;
 
     private static final Map<Character, String> MORSE_CODE_MAP = new HashMap<>();
     static {
@@ -91,10 +94,15 @@ public class TransmitController {
 
             if (isValidText(inputText)) {
                 logger.info("Valid Inputs: {}", inputText);
-                String morseCode = translateToMorse(inputText);
-                morseLbl.setText(morseCode);
-                letterLbl.setText(inputText);
-                startFlashing(morseCode);
+                System.out.println(inputText);
+                for (int x = 0; x < inputText.length(); x++) {
+                    char inputChar = inputText.toUpperCase().charAt(x);
+                    String morseCode = translateToMorse(inputChar);
+                    System.out.println(morseCode);
+                    morseLbl.setText(morseCode);
+                    letterLbl.setText(String.valueOf(inputChar));
+                    startFlashing(morseCode);
+                }
             } else {
                 logger.warn("Invalid Inputs");
 
@@ -105,18 +113,65 @@ public class TransmitController {
         });
     }
 
-    private String translateToMorse(String text) {
-        StringBuilder morse = new StringBuilder();
-        for (char c : text.toUpperCase().toCharArray()) {
-            if (MORSE_CODE_MAP.containsKey(c)) {
-                morse.append(MORSE_CODE_MAP.get(c)).append(" ");
-            } else {
-                morse.append(" ");
-            }
+    private String translateToMorse(char text) {
+        if (MORSE_CODE_MAP.containsKey(text)) {
+            return MORSE_CODE_MAP.get(text);
         }
-        return morse.toString().trim();
+        return "";
+//        StringBuilder morse = new StringBuilder();
+//        for (char c : text.toUpperCase().toCharArray()) {
+//            if (MORSE_CODE_MAP.containsKey(c)) {
+//                morse.append(MORSE_CODE_MAP.get(c)).append(" ");
+//            } else {
+//                morse.append(" ");
+//            }
+//        }
+//        return morse.toString().trim();
     }
 
+    private void startFlashing(String morseCode) {
+        stopAnimation();
+
+        timeline = new Timeline();
+        timeline.setCycleCount(Animation.INDEFINITE);
+        timeline.setAutoReverse(false);
+
+        Duration timeBetweenSymbols = Duration.millis(500);
+        Duration timeBetweenChar = Duration.millis(1500);
+
+
+        for (char symbol : morseCode.toCharArray()) {
+            if (symbol == '.'){
+                timeline.getKeyFrames().add(
+                new KeyFrame(timeBetweenSymbols,
+                        event -> borderPane.setBackground(Background.fill(Color.BLACK))));
+                timeline.getKeyFrames().add(
+                new KeyFrame(timeBetweenSymbols,
+                        event -> borderPane.setBackground(Background.fill(Color.WHITE))));
+
+            } else if (symbol == '_'){
+                timeline.getKeyFrames().add(
+                        new KeyFrame(timeBetweenSymbols,
+                                event -> borderPane.setBackground(Background.fill(Color.BLACK))));
+                timeline.getKeyFrames().add(
+                        new KeyFrame(timeBetweenChar,
+                                event -> borderPane.setBackground(Background.fill(Color.WHITE))));
+
+            }
+            timeline.getKeyFrames().add(
+                    new KeyFrame(timeBetweenSymbols,
+                            event -> borderPane.setBackground(Background.fill(Color.WHITE))));
+        }
+        timeline.play();
+    }
+
+    private void onUpdate(String morseCode) {
+        for (char symbol : morseCode.toCharArray()) {
+            if (symbol == '.'){
+
+            }
+        }
+    }
     /**
     private void startFlashing(String morseCode) {
         stopAnimation(); // Stop any existing animations
