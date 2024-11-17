@@ -19,7 +19,7 @@
                   <Label text="💡" />
                </graphic>
             </Button>
-            <Button fx:id="btnReceive" alignment="CENTER" contentDisplay="TOP" mnemonicParsing="false" prefHeight="46.0" prefWidth="309.0" style="-fx-background-radius: 25; -fx-border-radius: 25; -fx-border-color: grey;" text="Receive" textAlignment="CENTER">
+            <Button fx:id="btnReceive" alignment="CENTER" contentDisplay="TOP" mnemonicParsing="false" prefHeight="46.0" prefWidth="309.0" style="-fx-background-radius: 25; -fx-border-radius: 25; -fx-border-color: grey;" text="Menu" textAlignment="CENTER">
                <graphic>
                   <Label text="⌨" />
                </graphic>
@@ -34,7 +34,7 @@
       </HBox>
    </top>
    <center>
-      <VBox alignment="TOP_CENTER" prefHeight="200.0" prefWidth="100.0" BorderPane.alignment="CENTER">
+      <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0" BorderPane.alignment="CENTER">
          <children>
             <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="20.0">
                <children>
@@ -47,7 +47,7 @@
                   <Font size="60.0" />
                </font>
             </Label>
-            <Label fx:id="morseLbl" prefWidth="53.0" text="....">
+            <Label fx:id="morseLbl" alignment="CENTER" prefHeight="88.0" prefWidth="144.0" text="....">
                <font>
                   <Font size="60.0" />
                </font>

@@ -4,9 +4,12 @@ import edu.vanier.morse.controller.MenuController;
 import edu.vanier.morse.controller.TransmitController;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import java.util.logging.Level;
+
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,9 +42,13 @@ public class MainApp extends Application {
             Parent root = loadFXML("menu_layout", new MenuController());
 
             //-- 2) Create and set the scene to the stage.
-            scene = new Scene(root, 960, 540);
+            Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
+            double width = screenBounds.getWidth();
+            double height = screenBounds.getHeight();
+
+            scene = new Scene(root, width, height);
             primaryStage.setScene(scene);
-            primaryStage.setTitle("Tutorial!");
+            primaryStage.setTitle("Morse Code Translator!");
             primaryStage.sizeToScene();
             primaryStage.setAlwaysOnTop(true);
             primaryStage.show();

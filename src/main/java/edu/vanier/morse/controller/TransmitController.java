@@ -1,7 +1,10 @@
 package edu.vanier.morse.controller;
 
 import edu.vanier.morse.MainApp;
+import edu.vanier.morse.utility.MorseCodeMap;
 import javafx.animation.*;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -10,7 +13,6 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.paint.Color;
-import javafx.scene.text.Text;
 import javafx.util.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,62 +49,48 @@ public class TransmitController {
     private Timeline timeline;
     private double timeElapsed = 0.0;
 
-    private static final Map<Character, String> MORSE_CODE_MAP = new HashMap<>();
-    static {
-        MORSE_CODE_MAP.put('A', ".-");
-        MORSE_CODE_MAP.put('B', "-...");
-        MORSE_CODE_MAP.put('C', "-.-.");
-    }
-
-    public void setScene(Scene scene) {
-        this.mainScene = scene;
-    }
-
-    public void stopAnimation() {
-        if (timeline != null) {
+    /**
+     * To correctly stop the animation
+     * the background must be reset to white
+     */
+    private void stopAnimation() {
+        if (timeline != null && timeline.getStatus() == Animation.Status.RUNNING) {
             timeline.stop();
         }
+        borderPane.setBackground(Background.fill(Color.WHITE));
     }
 
-    public boolean isValidText(String inputPointA) {
-        return inputPointA != null && !inputPointA.trim().isEmpty();
+    /**
+     * Checks if user has given a valid entry
+     * @param text what it checks
+     * @return false if the input is empty
+     */
+    public boolean isValidText(String text) {
+        return text != null && !text.trim().isEmpty();
     }
 
-    public boolean isValidNumber(String inputRadius) {
-        if (inputRadius == null || inputRadius.trim().isEmpty()) {
-            return false;
-        }
-        try {
-            Double.parseDouble(inputRadius);
-            return true;
-        } catch (NumberFormatException e) {
-            return false;
-        }
-    }
-
+    /**
+     * Defines what happens when buttons are pressed
+     */
     @FXML
     public void initialize() {
+        // 1- Loads new scene, back to main
         btnReceive.setOnAction(event -> {
-            MainApp.switchScene("receive_layout", new ReceiveController());
+            MainApp.switchScene("menu_layout", new MenuController());
             logger.info("Loaded the receiving scene...");
         });
 
+        // 2- Flashes the screen
         transmitBtn.setOnAction(event -> {
             logger.info("Transmit Button has been pressed");
 
+            // Gets input from user
             String inputText = msgField.getText();
 
             if (isValidText(inputText)) {
-                logger.info("Valid Inputs: {}", inputText);
-                System.out.println(inputText);
-                for (int x = 0; x < inputText.length(); x++) {
-                    char inputChar = inputText.toUpperCase().charAt(x);
-                    String morseCode = translateToMorse(inputChar);
-                    System.out.println(morseCode);
-                    morseLbl.setText(morseCode);
-                    letterLbl.setText(String.valueOf(inputChar));
-                    startFlashing(morseCode);
-                }
+                logger.info("Valid Inputs: ", inputText);
+                //System.out.println(inputText); // to test input
+                startFlashingForText(inputText);
             } else {
                 logger.warn("Invalid Inputs");
 
@@ -113,91 +101,89 @@ public class TransmitController {
         });
     }
 
-    private String translateToMorse(char text) {
-        if (MORSE_CODE_MAP.containsKey(text)) {
-            return MORSE_CODE_MAP.get(text);
-        }
-        return "";
-//        StringBuilder morse = new StringBuilder();
-//        for (char c : text.toUpperCase().toCharArray()) {
-//            if (MORSE_CODE_MAP.containsKey(c)) {
-//                morse.append(MORSE_CODE_MAP.get(c)).append(" ");
-//            } else {
-//                morse.append(" ");
-//            }
-//        }
-//        return morse.toString().trim();
-    }
-
-    private void startFlashing(String morseCode) {
-        stopAnimation();
-
-        timeline = new Timeline();
-        timeline.setCycleCount(Animation.INDEFINITE);
-        timeline.setAutoReverse(false);
-
-        Duration timeBetweenSymbols = Duration.millis(500);
-        Duration timeBetweenChar = Duration.millis(1500);
-
-
-        for (char symbol : morseCode.toCharArray()) {
-            if (symbol == '.'){
-                timeline.getKeyFrames().add(
-                new KeyFrame(timeBetweenSymbols,
-                        event -> borderPane.setBackground(Background.fill(Color.BLACK))));
-                timeline.getKeyFrames().add(
-                new KeyFrame(timeBetweenSymbols,
-                        event -> borderPane.setBackground(Background.fill(Color.WHITE))));
-
-            } else if (symbol == '_'){
-                timeline.getKeyFrames().add(
-                        new KeyFrame(timeBetweenSymbols,
-                                event -> borderPane.setBackground(Background.fill(Color.BLACK))));
-                timeline.getKeyFrames().add(
-                        new KeyFrame(timeBetweenChar,
-                                event -> borderPane.setBackground(Background.fill(Color.WHITE))));
-
-            }
-            timeline.getKeyFrames().add(
-                    new KeyFrame(timeBetweenSymbols,
-                            event -> borderPane.setBackground(Background.fill(Color.WHITE))));
-        }
-        timeline.play();
-    }
-
-    private void onUpdate(String morseCode) {
-        for (char symbol : morseCode.toCharArray()) {
-            if (symbol == '.'){
-
-            }
-        }
-    }
     /**
-    private void startFlashing(String morseCode) {
-        stopAnimation(); // Stop any existing animations
+     *
+     * @param text the character that should be translated
+     * @return the morse equivalent
+     */
+    private String translateToMorse(char text) {
+        Map<Character, String> morseCodeMap = MorseCodeMap.getMorseCodeMap();
+        if (morseCodeMap.containsKey(text)) {
+            String morseCode = morseCodeMap.get(text);
+            System.out.println(morseCode);
+            return morseCode;
+        }
+        return " ";
+    }
 
-        timeline = new Timeline();
-        Duration timeBetweenSymbols = Duration.millis(500);
-        Duration timeBetweenCharacters = Duration.millis(1500);
+    /**
+     * Flashes the screen background as morse code
+     * @param inputText the users text
+     */
+    private void startFlashingForText(String inputText) {
+        stopAnimation(); // Reset any running animation
 
-        double timeCursor = 0;
-        for (char symbol : morseCode.toCharArray()) {
-            if (symbol == '.') {
-                timeline.getKeyFrames().add(new KeyFrame(Duration.millis(timeCursor), e -> morseLbl.setStyle("-fx-background-color: black")));
-                timeCursor += timeBetweenSymbols.toMillis();
-                timeline.getKeyFrames().add(new KeyFrame(Duration.millis(timeCursor), e -> morseLbl.setStyle("-fx-background-color: white")));
-                timeCursor += timeBetweenSymbols.toMillis();
-            } else if (symbol == '-') {
-                timeline.getKeyFrames().add(new KeyFrame(Duration.millis(timeCursor), e -> morseLbl.setStyle("-fx-background-color: black")));
-                timeCursor += 3 * timeBetweenSymbols.toMillis(); // Dash is three times longer than dot
-                timeline.getKeyFrames().add(new KeyFrame(Duration.millis(timeCursor), e -> morseLbl.setStyle("-fx-background-color: white")));
-                timeCursor += timeBetweenSymbols.toMillis();
-            } else {
-                timeCursor += timeBetweenCharacters.toMillis(); // Space between characters
+        SequentialTransition sequentialTransition = new SequentialTransition();
+        Duration symbolDuration = Duration.millis(150); // Dot duration
+        Duration dashDuration = Duration.millis(750);  // Dash duration
+        Duration timeBetweenSymbols = Duration.millis(500); // Gap between symbols
+        Duration timeBetweenCharacters = Duration.millis(1000); // Gap between characters
+
+        // Goes through every character of the users text,
+        for (int i = 0; i < inputText.length(); i++) {
+            char inputChar = inputText.toUpperCase().charAt(i);
+            String morseCode = translateToMorse(inputChar);
+
+            // Add animation for each character's Morse code sequence
+            for (int x = 0; x < morseCode.length(); x++) {
+                char symbol = morseCode.charAt(x);
+
+                // Timeline for the current symbol
+                Timeline symbolTimeline = new Timeline();
+
+                // Update labels at the start of the sequence
+                KeyFrame updateLabels = new KeyFrame(Duration.ZERO, event -> {
+                    morseLbl.setText(String.valueOf(symbol));
+                    letterLbl.setText(String.valueOf(inputChar));
+                });
+
+                // Add the color flashing logic
+                KeyFrame flashBlack;
+                if (symbol == '.') {
+                    flashBlack = new KeyFrame(symbolDuration, this::handleOnFinishedBlack);
+                } else if (symbol == '-') {
+                    flashBlack = new KeyFrame(dashDuration, this::handleOnFinishedBlack);
+                } else {
+                    continue; // Skip unsupported symbols
+                }
+
+                // Add a white background after the symbol
+                KeyFrame flashWhite = new KeyFrame(timeBetweenSymbols, this::handleOnFinishedWhite);
+
+                // Add all keyframes to the timeline
+                symbolTimeline.getKeyFrames().addAll(updateLabels, flashBlack, flashWhite);
+
+                // Add the timeline to the sequential transition
+                sequentialTransition.getChildren().add(symbolTimeline);
             }
+
+            // Add a gap after the character
+            Timeline gapTimeline = new Timeline(new KeyFrame(timeBetweenCharacters));
+            sequentialTransition.getChildren().add(gapTimeline);
         }
 
-        timeline.play();
+        // Play the sequential transition
+        sequentialTransition.play();
     }
+
+    /**
+     * Sets backgrounds to specific colours for flash effect
+     * @param actionEvent
      */
+    private void handleOnFinishedBlack(ActionEvent actionEvent) {
+        borderPane.setBackground(Background.fill(Color.BLACK));
+    }
+    private void handleOnFinishedWhite(ActionEvent actionEvent) {
+        borderPane.setBackground(Background.fill(Color.WHITE));
+    }
 }

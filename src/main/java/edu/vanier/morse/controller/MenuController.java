@@ -2,10 +2,12 @@ package edu.vanier.morse.controller;
 
 import edu.vanier.morse.MainApp;
 import javafx.fxml.FXML;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.stage.Screen;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,9 +31,15 @@ public class MenuController {
         // Create an ImageView to display the image
         imgViewPresentation.setImage(material);
 
+        // Get Size of the screen
+        Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
+        double width = screenBounds.getWidth();
+        double height = screenBounds.getHeight();
+
+
         // Set the size of the image
-        imgViewPresentation.setFitWidth(960);
-        imgViewPresentation.setFitHeight(540);
+        imgViewPresentation.setFitWidth(width);
+        imgViewPresentation.setFitHeight(height);
 
         btnTransmit.setOnAction(event -> {
             MainApp.switchScene("transmit_layout", new TransmitController());
